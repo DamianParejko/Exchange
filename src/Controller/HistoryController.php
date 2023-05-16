@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\History;
+use App\Repository\HistoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -10,15 +11,29 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
+
 class HistoryController extends AbstractController
 {
     private $entityManager;
+    private $historyRepository;
 
-    public function __construct(EntityManagerInterface $entityManager){
+    public function __construct(EntityManagerInterface $entityManager, HistoryRepository $historyRepository){
         $this->entityManager = $entityManager; 
+        $this->historyRepository = $historyRepository;
     }
 
-    #[Route('/exchange/values', methods: ["POST"] , name: 'post')]
+    #[Route('/exchange/values', methods: ["GET"], name: 'get')]
+    public function index(): JsonResponse
+    {
+        $history = $this->historyRepository->findAll();
+
+        return $this->json([
+            'data' => $history,
+            'code' => Response::HTTP_OK
+        ]);
+    }
+    
+    #[Route('/exchange/values', methods: ["POST"], name: 'post')]
     public function post(Request $request): JsonResponse
     {
         $jsonData = json_decode($request->getContent(), true);
