@@ -3,8 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\History;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\Tools\Pagination\Paginator;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 /**
  * @extends ServiceEntityRepository<History>
@@ -42,17 +43,19 @@ class HistoryRepository extends ServiceEntityRepository
 //    /**
 //     * @return History[] Returns an array of History objects
 //     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('h')
-//            ->andWhere('h.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('h.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function findAllWithPaginateAndSort($page, $limit, $sortBy, $sortOrder): Paginator
+    {
+        $query = $this->createQueryBuilder('h')
+            ->orderBy('h.' . $sortBy, $sortOrder)
+            ->getQuery();
+
+        $paginator = new Paginator($query);
+        $paginator->getQuery()
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        return $paginator;
+    }
 
 //    public function findOneBySomeField($value): ?History
 //    {

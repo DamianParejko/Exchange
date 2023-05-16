@@ -23,13 +23,26 @@ class HistoryController extends AbstractController
     }
 
     #[Route('/exchange/values', methods: ["GET"], name: 'get')]
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $history = $this->historyRepository->findAll();
+        $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 10);
+        $sortBy = $request->query->get('sort_by', 'id');
+        $sortOrder = $request->query->get('sort_order', 'asc');
 
+        $history = $this->historyRepository->findAllWithPaginateAndSort($page, $limit, $sortBy, $sortOrder);
+
+        $totalItems = $history->count();
+        $totalPages = ceil($totalItems / $limit);
+
+        $history = iterator_to_array($history->getIterator());
+        
         return $this->json([
             'data' => $history,
-            'code' => Response::HTTP_OK
+            'code' => Response::HTTP_OK,
+            'total_items' => $totalItems,
+            'total_pages' => $totalPages,
+            'current_page' => $page,
         ]);
     }
     
